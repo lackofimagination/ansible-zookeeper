@@ -1,8 +1,5 @@
 ---
 - name: Converge
   hosts: all
-  become: true
-
   roles:
     - role: ansible-zookeeper
-      apache_mirror: 'http://mirrors.shu.edu.cn/apache'

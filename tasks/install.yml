@@ -1,0 +1,95 @@
+---
+- name: check if zookeeper user exists
+  command: 'id {{ zookeeper_user }}'
+  ignore_errors: true
+  changed_when: false
+  register: user_exists
+
+- name: add zookeeper group
+  group:
+    name: '{{ zookeeper_group }}'
+    state: present
+  when: user_exists is failed
+
+- name: add zookeeper user
+  user:
+    name: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+    comment: 'zookeeper'
+    home: '{{ zookeeper_install_dir }}'
+    shell: '/sbin/nologin'
+    system: false
+  when: user_exists is failed
+
+- name: create data directory
+  file:
+    path: '{{ zookeeper_data_dir }}'
+    state: directory
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+
+- name: create log directory
+  file:
+    path: '{{ zookeeper_log_dir }}'
+    state: directory
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+
+- name: create conf directory
+  file:
+    path: '{{ zookeeper_conf_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: create pid directory
+  file:
+    path: '{{ zookeeper_pid_dir }}'
+    state: directory
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+
+- name: create init script
+  template:
+    src: zookeeper.init.j2
+    dest: '/etc/init.d/{{ zookeeper_daemon }}'
+    mode: 0755
+
+- name: create cfg
+  template:
+    src: zoo.cfg.j2
+    dest: '{{ zookeeper_conf_dir }}/zoo.cfg'
+  notify: restart zookeeper
+
+- name: create myid
+  template:
+    src: myid.j2
+    dest: '{{ zookeeper_data_dir }}/myid'
+  notify: restart zookeeper
+  when: zookeeper_myid is defined
+
+- name: copy log4j configuration
+  copy:
+    src: log4j.properties
+    dest: '{{ zookeeper_conf_dir }}/log4j.properties'
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart zookeeper
+
+- meta: flush_handlers
+
+- name: ensure zookeeper is running
+  service:
+    name: '{{ zookeeper_daemon }}'
+    enabled: true
+    state: started
+
+- name: add zookeeper binaries to path
+  copy:
+    src: zookeeper.sh
+    dest: /etc/profile.d/zookeeper.sh
+    owner: root
+    group: root
+    mode: 0644

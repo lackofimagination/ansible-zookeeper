@@ -1,0 +1,18 @@
+maxClientCnxns={{ zookeeper_max_client_cnxns }}
+tickTime={{ zookeeper_tick_time }}
+initLimit={{ zookeeper_init_limit }}
+syncLimit={{ zookeeper_sync_limit }}
+dataDir={{ zookeeper_data_dir }}
+clientPort={{ zookeeper_client_port }}
+globalOutstandingLimit={{ zookeeper_global_outstanding_limit }}
+snapCount={{ zookeeper_snap_count }}
+minSessionTimeout={{ zookeeper_min_session_timeout }}
+maxSessionTimeout={{ zookeeper_max_session_timeout }}
+fsync.warningthresholdms={{ zookeeper_fsync_warning_threshold_ms }}
+autopurge.snapRetainCount={{ zookeeper_autopurge_snap_retain_count }}
+autopurge.purgeInterval={{ zookeeper_autopurge_purge_interval }}
+syncEnabled={{ zookeeper_sync_enabled }}
+
+{% for instance in zookeeper_instances -%}
+server.{{ instance.myid }}={{ instance.name }}:2888:3888
+{% endfor -%}

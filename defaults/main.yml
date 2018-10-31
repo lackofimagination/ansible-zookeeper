@@ -1,2 +1,29 @@
 ---
-# defaults file for ansible-zookeeper
+# Installation
+apache_mirror: 'https://www-us.apache.org/dist'
+zookeeper_version: 3.4.13
+zookeeper_download_url: '{{ apache_mirror }}/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz'
+zookeeper_user: zookeeper
+zookeeper_group: zookeeper
+zookeeper_install_dir: /opt/zookeeper
+zookeeper_daemon: 'zookeeper-server'
+zookeeper_data_dir: /var/lib/zookeeper
+zookeeper_conf_dir: /etc/zookeeper
+zookeeper_log_dir: /var/log/zookeeper
+zookeeper_pid_dir: /var/run/zookeeper
+zookeeper_instances: []
+zookeeper_myid: null
+# Configuration
+zookeeper_client_port: 2181
+zookeeper_max_client_cnxns: 60
+zookeeper_tick_time: 2000
+zookeeper_init_limit: 10
+zookeeper_sync_limit: 5
+zookeeper_global_outstanding_limit: 1000
+zookeeper_snap_count: 100000
+zookeeper_min_session_timeout: 4000
+zookeeper_max_session_timeout: 40000
+zookeeper_fsync_warning_threshold_ms: 1000
+zookeeper_autopurge_snap_retain_count: 3
+zookeeper_autopurge_purge_interval: 0
+zookeeper_sync_enabled: 'true'
