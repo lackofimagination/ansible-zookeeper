@@ -7,27 +7,39 @@ lint:
   name: yamllint
 platforms:
   - name: instance-1
-    image: geerlingguy/docker-ubuntu1604-ansible:latest
+    image: lackofimagination/ubuntu-systemd:latest
+    command: /sbin/init
+    capabilities:
+      - SYS_ADMIN
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     cpu_period: 100000
     cpu_quota: 50000
+    memory: 1024M
     privileged: true
     pre_build_image: true
   - name: instance-2
-    image: geerlingguy/docker-ubuntu1604-ansible:latest
+    image: lackofimagination/ubuntu-systemd:latest
+    command: /sbin/init
+    capabilities:
+      - SYS_ADMIN
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     cpu_period: 100000
     cpu_quota: 50000
+    memory: 1024M
     privileged: true
     pre_build_image: true
   - name: instance-3
-    image: geerlingguy/docker-ubuntu1604-ansible:latest
+    image: lackofimagination/ubuntu-systemd:latest
+    command: /sbin/init
+    capabilities:
+      - SYS_ADMIN
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     cpu_period: 100000
     cpu_quota: 50000
+    memory: 1024M
     privileged: true
     pre_build_image: true
 provisioner:

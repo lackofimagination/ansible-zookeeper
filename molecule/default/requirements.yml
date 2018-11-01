@@ -1,0 +1,3 @@
+---
+- src: https://github.com/lackofimagination/ansible-java
+  version: v1.0.0

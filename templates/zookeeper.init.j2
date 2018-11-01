@@ -31,157 +31,63 @@
 ### END INIT INFO
 set -e
 
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+. /lib/lsb/init-functions
 
 NAME=zookeeper-server
-DESC="ZooKeeper daemon"
-PID_FILE={{ zookeeper_pid_dir }}/zookeeper-server.pid
-install -d -m 0755 -o {{ zookeeper_user }} -g {{ zookeeper_group }} {{ zookeeper_pid_dir }}/
+PIDFILE={{ zookeeper_pid_dir }}/zookeeper-server.pid
 
-DODTIME=3
-
-export ZOOPIDFILE=${PID_FILE}
-export ZOOKEEPER_HOME=${ZOOKEEPER_HOME:-/opt/zookeeper}
-export ZOOKEEPER_CONF=${ZOOKEEPER_CONF:-{{ zookeeper_conf_dir }}}
-export ZOOCFGDIR=${ZOOCFGDIR:-$ZOOKEEPER_CONF}
-export CLASSPATH=$CLASSPATH:$ZOOKEEPER_CONF:$ZOOKEEPER_HOME/*:$ZOOKEEPER_HOME/lib/*
-export ZOO_LOG_DIR=${ZOO_LOG_DIR:-{{ zookeeper_log_dir }}}
-export ZOO_LOG4J_PROP=${ZOO_LOG4J_PROP:-INFO,ROLLINGFILE}
-export JVMFLAGS=${JVMFLAGS:--Dzookeeper.log.threshold=INFO}
-export ZOO_DATADIR_AUTOCREATE_DISABLE=${ZOO_DATADIR_AUTOCREATE_DISABLE:-true}
-DAEMON_SCRIPT="env CLASSPATH=$CLASSPATH $ZOOKEEPER_HOME/bin/zkServer.sh"
-
-
-# Checks if the given pid represents a live process.
-# Returns 0 if the pid is a live process, 1 otherwise
-zk_is_process_alive() {
-  local pid="$1" 
-  ps -fp $pid | grep $pid | grep zookeeper > /dev/null 2>&1
-}
-
-zk_check_pidfile() {
-  local pidfile="$1" # IN
-  local pid
-
-  pid=`cat "$pidfile" 2>/dev/null`
-  if [ "$pid" = '' ]; then
-    # The file probably does not exist or is empty. 
-    return 1
-  fi
-    
-  set -- $pid
-  pid="$1"
-
-  zk_is_process_alive $pid
-}
-
-zk_process_kill() {
-  local pid="$1"    # IN
-  local signal="$2" # IN
-  local second
-
-  kill -$signal $pid 2>/dev/null
-
-  # Wait a bit to see if the dirty job has really been done
-  for second in 0 1 2 3 4 5 6 7 8 9 10; do
-    if zk_is_process_alive "$pid"; then
-      # Success
-      return 0
-    fi
-
-    sleep 1
-  done
-
-  # Timeout
-  return 1
-}
-
-zk_stop_pidfile() {
-  local pidfile="$1" # IN
-  local pid
-
-  pid=`cat "$pidfile" 2>/dev/null`
-  if [ "$pid" = '' ]; then
-    # The file probably does not exist or is empty. Success
-    return 0
-  fi
-    
-  set -- $pid
-  pid="$1"
-
-  # First try the easy way
-  if zk_process_kill "$pid" 15; then
-    return 0
-  fi
-
-  # Otherwise try the hard way
-  if zk_process_kill "$pid" 9; then
-    return 0
-  fi
-
-  return 1
-}
-
-start() {
-  su -s /bin/bash zookeeper -c "${DAEMON_SCRIPT} start"
-  sleep 5
-}
-stop() {
-  if zk_check_pidfile $PID_FILE ; then
-    su -s /bin/bash zookeeper -c "${DAEMON_SCRIPT} stop"
-  fi
-}
+ZOOKEEPERUSER={{ zookeeper_user }}
+ZOOPIDFILE=${PIDFILE}
+ZOOKEEPER_HOME={{ zookeeper_install_dir }}
+ZOOKEEPER_CONF={{ zookeeper_conf_dir }}
+ZOOCFGDIR={{ zookeeper_conf_dir }}
+CLASSPATH=$CLASSPATH:$ZOOKEEPER_CONF:$ZOOKEEPER_HOME/*:$ZOOKEEPER_HOME/lib/*
+ZOO_DATADIR={{ zookeeper_data_dir }}
+ZOO_LOG_DIR={{ zookeeper_log_dir }}
+ZOO_LOG4J_PROP=${ZOO_LOG4J_PROP:-INFO,ROLLINGFILE}
+ZOO_DATADIR_AUTOCREATE_DISABLE=${ZOO_DATADIR_AUTOCREATE_DISABLE:-true}
+ENV="env CLASSPATH=$CLASSPATH ZOOCFGDIR=$ZOOCFGDIR ZOOPIDFILE=$ZOOPIDFILE ZOO_LOG_DIR=$ZOO_LOG_DIR"
+EXEC="$ZOOKEEPER_HOME/bin/zkServer.sh"
 
 case "$1" in
   start)
-    start
-    ;;
-  stop)
-    stop 
-    ;;
-  force-stop)
-    echo -n "Forcefully stopping $DESC: "
-    zk_stop_pidfile $PID_FILE
-    if zk_check_pidfile $PID_FILE ; then
-      echo "$NAME."
+    if [ -f $PIDFILE ]; then
+      status_of_proc -p "$PIDFILE" $EXEC "$NAME"
+    fi
+
+    log_daemon_msg "Starting Zookeeper server..."
+    if $ENV start-stop-daemon --start -q --oknodo -p "$PIDFILE" -c $ZOOKEEPERUSER --exec $EXEC -- "start"; then
+      log_end_msg 0
     else
-      echo " ERROR."
+      log_end_msg 1
     fi
     ;;
-  force-reload|condrestart|try-restart)
-    # check wether $DAEMON is running. If so, restart
-    zk_check_pidfile $PID_FILE && $0 restart
+  stop)
+    if [ ! -f $PIDFILE ]; then
+      log_daemon_msg "$PIDFILE does not exist, process is not running"
+      log_end_msg 0
+    else
+      PID=$(cat "$PIDFILE")
+      log_daemon_msg "Stopping..."
+      $ENV su -s /bin/bash {{ zookeeper_user }} -c "$EXEC stop"
+      while [ -x /proc/${PID} ]; do
+        log_daemon_msg "Waiting for Zookeeper to shutdown..."
+        sleep 1
+      done
+
+      log_daemon_msg "Zookeeper stopped"
+      log_end_msg 0
+    fi
     ;;
-  restart|reload)
-    echo -n "Restarting $DESC: "
-    stop
-    [ -n "$DODTIME" ] && sleep $DODTIME
+  restart|force-reload)
+    $0 stop
     $0 start
     ;;
   status)
-    echo -n "$NAME is "
-    if zk_check_pidfile $PID_FILE ; then
-      echo "running"
-    else
-      echo "not running."
-      exit 1
-    fi
-    ;;
-  init)
-    if zk_check_pidfile $PID_FILE ; then
-      echo "Error: $DESC is running. Stop it first." >&2
-      exit 1
-    else
-      shift
-      su -s /bin/bash zookeeper -c "zookeeper-server-initialize $*"
-    fi
+    status_of_proc -p "$PIDFILE" $EXEC "$NAME"
     ;;
   *)
-    N=/etc/init.d/$NAME
-    # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-    echo "Usage: $N {start|stop|restart|force-reload|status|force-stop|condrestart|try-restart|init}" >&2
+    echo "Usage: /etc/init.d/$NAME {start|stop|restart|status|force-reload}" >&2
     exit 1
     ;;
 esac
-
-exit 0

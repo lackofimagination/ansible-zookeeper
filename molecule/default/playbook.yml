@@ -4,5 +4,6 @@
   become: true
 
   roles:
+    - role: ansible-java
     - role: ansible-zookeeper
-      apache_mirror: 'http://mirrors.shu.edu.cn/apache'
+      apache_mirror: 'http://mirrors.tuna.tsinghua.edu.cn/apache'

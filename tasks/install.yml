@@ -35,6 +35,13 @@
     owner: '{{ zookeeper_user }}'
     group: '{{ zookeeper_group }}'
 
+- name: create pid directory
+  file:
+    path: '{{ zookeeper_pid_dir }}'
+    state: directory
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+
 - name: create conf directory
   file:
     path: '{{ zookeeper_conf_dir }}'
@@ -42,13 +49,6 @@
     owner: root
     group: root
     mode: 0755
-
-- name: create pid directory
-  file:
-    path: '{{ zookeeper_pid_dir }}'
-    state: directory
-    owner: '{{ zookeeper_user }}'
-    group: '{{ zookeeper_group }}'
 
 - name: create init script
   template:
@@ -66,8 +66,8 @@
   template:
     src: myid.j2
     dest: '{{ zookeeper_data_dir }}/myid'
+  when: zookeeper_myid is defined and zookeeper_myid
   notify: restart zookeeper
-  when: zookeeper_myid is defined
 
 - name: copy log4j configuration
   copy:
@@ -86,10 +86,14 @@
     enabled: true
     state: started
 
-- name: add zookeeper binaries to path
-  copy:
-    src: zookeeper.sh
-    dest: /etc/profile.d/zookeeper.sh
-    owner: root
-    group: root
-    mode: 0644
+- name: list zookeeper binaries
+  command: 'ls -1 {{ zookeeper_install_dir }}/bin'
+  register: zookeeper_binaries
+  changed_when: false
+
+- name: add zookeeper binaries
+  alternatives:
+    name: '{{ item }}'
+    path: '{{ zookeeper_install_dir }}/bin/{{ item }}'
+    link: '/usr/bin/{{ item }}'
+  with_items: '{{ zookeeper_binaries.stdout_lines | select("match", ".*\.sh") }}'

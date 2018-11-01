@@ -36,14 +36,20 @@ def test_zoo_cfg_file(host):
     assert 'syncEnabled=true' in s
 
 
-def test_zookeeper_sh_file(host):
-    f = host.file('/etc/profile.d/zookeeper.sh')
-
-    assert f.exists
-    assert f.user == 'root'
-
-
 def test_zookeeper_init_file(host):
     f = host.file('/etc/init.d/zookeeper-server')
 
     assert f.exists
+
+
+def test_zookeeper_pid_file(host):
+    f = host.file('/var/run/zookeeper/zookeeper-server.pid')
+
+    assert f.exists
+
+
+def test_zookeeper_systemd(host):
+    s = host.service('zookeeper-server')
+
+    assert s.is_running
+    assert s.is_enabled
