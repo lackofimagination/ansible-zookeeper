@@ -46,6 +46,9 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
+    options:
+      x:
+        - ANSIBLE0013
   inventory:
     host_vars:
       instance-1:
