@@ -14,5 +14,5 @@ autopurge.purgeInterval={{ zookeeper_autopurge_purge_interval }}
 syncEnabled={{ zookeeper_sync_enabled }}
 
 {% for instance in zookeeper_instances -%}
-server.{{ instance.myid }}={{ instance.name }}:2888:3888
+server.{{ instance.myid }}={{ instance.ip }}:2888:3888
 {% endfor -%}

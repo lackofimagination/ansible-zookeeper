@@ -46,6 +46,14 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
+  inventory:
+    host_vars:
+      instance-1:
+        zookeeper_myid: 1
+      instance-2:
+        zookeeper_myid: 2
+      instance-3:
+        zookeeper_myid: 3
 scenario:
   name: cluster
 verifier:
