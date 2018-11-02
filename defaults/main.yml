@@ -27,3 +27,4 @@ zookeeper_fsync_warning_threshold_ms: 1000
 zookeeper_autopurge_snap_retain_count: 3
 zookeeper_autopurge_purge_interval: 0
 zookeeper_sync_enabled: 'true'
+zookeeper_data_log_dir: null

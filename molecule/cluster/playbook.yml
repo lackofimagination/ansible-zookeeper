@@ -4,15 +4,15 @@
 
   pre_tasks:
     - name: get ip of instance-1
-      local_action: 'shell docker inspect -f \{\{range .NetworkSettings.Networks\}\}\{\{.IPAddress\}\}\{\{end\}\} instance-1'
+      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-1'
       register: instance_1_ip
       changed_when: false
     - name: get ip of instance-2
-      local_action: 'shell docker inspect -f \{\{range .NetworkSettings.Networks\}\}\{\{.IPAddress\}\}\{\{end\}\} instance-2'
+      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-2'
       register: instance_2_ip
       changed_when: false
     - name: get ip of instance-3
-      local_action: 'shell docker inspect -f \{\{range .NetworkSettings.Networks\}\}\{\{.IPAddress\}\}\{\{end\}\} instance-3'
+      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-3'
       register: instance_3_ip
       changed_when: false
 
