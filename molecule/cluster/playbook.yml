@@ -4,24 +4,26 @@
 
   pre_tasks:
     - name: get ip of instance-1
-      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-1'
+      local_action: shell docker inspect -f '{{ "{{" }}range .NetworkSettings.Networks{{ "}}" }}{{ "{{" }}.IPAddress{{ "}}" }}{{ "{{" }}end{{ "}}" }}' instance-1
       register: instance_1_ip
       changed_when: false
     - name: get ip of instance-2
-      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-2'
+      local_action: shell docker inspect -f '{{ "{{" }}range .NetworkSettings.Networks{{ "}}" }}{{ "{{" }}.IPAddress{{ "}}" }}{{ "{{" }}end{{ "}}" }}' instance-2
       register: instance_2_ip
       changed_when: false
     - name: get ip of instance-3
-      local_action: 'shell docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" instance-3'
+      local_action: shell docker inspect -f '{{ "{{" }}range .NetworkSettings.Networks{{ "}}" }}{{ "{{" }}.IPAddress{{ "}}" }}{{ "{{" }}end{{ "}}" }}' instance-3
       register: instance_3_ip
       changed_when: false
 
   roles:
+    - role: ansible-java
     - role: ansible-zookeeper
+      apache_mirror: 'http://mirrors.tuna.tsinghua.edu.cn/apache'
       zookeeper_instances:
         - myid: 1
-          ip: '{{ instance_1_ip }}'
+          ip: '{{ instance_1_ip.stdout }}'
         - myid: 2
-          ip: '{{ instance_2_ip }}'
+          ip: '{{ instance_2_ip.stdout }}'
         - myid: 3
-          ip: '{{ instance_3_ip }}'
+          ip: '{{ instance_3_ip.stdout }}'
