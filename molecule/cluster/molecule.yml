@@ -16,7 +16,6 @@ platforms:
     cpu_period: 100000
     cpu_quota: 50000
     memory: 1024M
-    privileged: true
     pre_build_image: true
   - name: instance-2
     image: lackofimagination/ubuntu-systemd:latest
@@ -28,7 +27,6 @@ platforms:
     cpu_period: 100000
     cpu_quota: 50000
     memory: 1024M
-    privileged: true
     pre_build_image: true
   - name: instance-3
     image: lackofimagination/ubuntu-systemd:latest
@@ -40,7 +38,6 @@ platforms:
     cpu_period: 100000
     cpu_quota: 50000
     memory: 1024M
-    privileged: true
     pre_build_image: true
 provisioner:
   name: ansible
